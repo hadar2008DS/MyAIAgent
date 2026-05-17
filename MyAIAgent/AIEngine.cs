@@ -3,9 +3,10 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.ComponentModel;
+using System.Data.OleDb; // קריטי עבור פנייה ל-Access
 using System.Threading.Tasks;
+using MyAIAgent.DTOs; // גישה ל-DTOs שהגדרת
 
 
 namespace MyAIAgent
@@ -17,19 +18,21 @@ namespace MyAIAgent
         private readonly ChatHistory history;
 
         //Setup
-        public AIEngine(String apiKey, string modelId = "gpt-4o-mini")
+        public AIEngine(string apiKey, string connectionString, string modelId = "gpt-4o-mini")
         {
             var builder = Kernel.CreateBuilder();
             builder.AddOpenAIChatCompletion(modelId, apiKey);
 
-            //Connecting plagIns
+            // תיקון: העברת ה-connectionString שהתקבל בפרמטר לפלאגין
             var dbPlugin = new DatabasePlugin(connectionString);
             builder.Plugins.AddFromObject(dbPlugin, "JamLinkDatabase");
 
             kernel = builder.Build();
             chatService = kernel.GetRequiredService<IChatCompletionService>();
 
-            //memory and promt
+            // תיקון: חובה לבצע new ל-ChatHistory לפני שמוסיפים הודעות, אחרת תתקבל שגיאת NullReferenceException
+            history = new ChatHistory();
+
             history.AddSystemMessage("You are JamLink AI, a professional music collaboration assistant. " +
                                      "You have access to the musician and producer database. " +
                                      "Use the 'JamLinkDatabase' tools to answer questions about users, instruments, and music segments.");
@@ -40,24 +43,22 @@ namespace MyAIAgent
         {
             history.AddUserMessage(userPrompt);
 
-            // הגדרות המאפשרות לאג'נט להפעיל את הפלאגין אוטומטית לפי הצורך
             var settings = new OpenAIPromptExecutionSettings
             {
                 ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
             };
 
-            // קבלת התשובה מהמודל
             var response = await chatService.GetChatMessageContentAsync(
                 history,
                 executionSettings: settings,
                 kernel: kernel);
 
-            // Update history in the response
             history.AddAssistantMessage(response.Content);
 
             return response.Content;
         }
-
-
     }
+
+
 }
+

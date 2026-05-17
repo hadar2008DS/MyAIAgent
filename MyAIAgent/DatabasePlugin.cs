@@ -27,8 +27,6 @@ namespace MyAIAgent
 
             using (OleDbConnection conn = new OleDbConnection(_connectionString))
             {
-                // שאילתת SQL המבצעת Join בין Person, Musician, Instruments ו-MusicalSegments
-                // כפי שמופיע בתרשים ה-ERD
                 string sql = @"
                     SELECT p.UserName, m.IsActive, i.InstrumentName, s.Genre, s.Mood, s.BPM
                     FROM (((Person AS p 
@@ -67,7 +65,6 @@ namespace MyAIAgent
 
             using (OleDbConnection conn = new OleDbConnection(_connectionString))
             {
-                // חיבור בין Producer לבין Apps דרך טבלת הקישור ProducerApps
                 string sql = @"
                     SELECT p.UserName, a.Appname, pr.IsActive
                     FROM ((Person AS p
@@ -95,3 +92,4 @@ namespace MyAIAgent
         }
     }
 }
+
