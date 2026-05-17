@@ -22,11 +22,11 @@ namespace MyAIAgent
         {
             var builder = Kernel.CreateBuilder();
 
-            // החלפת המודל למודל של Groq והפניית ה-Endpoint לשרתים שלהם
+            // החלפת ה-modelId למודל העדכני של Groq שתומך ב-Plugins
             builder.AddOpenAIChatCompletion(
-                modelId: "llama3-8b-8192", // מודל סופר מהיר וחינמי של Groq
+                modelId: "llama-3.3-70b-versatile", // זה המודל החזק והעדכני ביותר שלהם כרגע
                 apiKey: apiKey,
-                endpoint: new Uri("https://api.groq.com/openai/v1") // הכתובת שמנתבת את זה ל-Groq!
+                endpoint: new Uri("https://api.groq.com/openai/v1")
             );
 
             var dbPlugin = new DatabasePlugin(connectionString);
@@ -36,7 +36,7 @@ namespace MyAIAgent
             chatService = kernel.GetRequiredService<IChatCompletionService>();
 
             history = new ChatHistory();
-            history.AddSystemMessage("You are JamLink AI, a professional music collaboration assistant. " +
+            history.AddSystemMessage("You are Jimi AI, a professional music collaboration assistant. " +
                                      "You have access to the musician and producer database. " +
                                      "Use the 'JamLinkDatabase' tools to answer questions about users, instruments, and music segments.");
         }
