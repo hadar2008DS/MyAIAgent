@@ -18,21 +18,24 @@ namespace MyAIAgent
         private readonly ChatHistory history;
 
         //Setup
-        public AIEngine(string apiKey, string connectionString, string modelId = "gpt-4o-mini")
+        public AIEngine(string apiKey, string connectionString)
         {
             var builder = Kernel.CreateBuilder();
-            builder.AddOpenAIChatCompletion(modelId, apiKey);
 
-            // תיקון: העברת ה-connectionString שהתקבל בפרמטר לפלאגין
+            // החלפת המודל למודל של Groq והפניית ה-Endpoint לשרתים שלהם
+            builder.AddOpenAIChatCompletion(
+                modelId: "llama3-8b-8192", // מודל סופר מהיר וחינמי של Groq
+                apiKey: apiKey,
+                endpoint: new Uri("https://api.groq.com/openai/v1") // הכתובת שמנתבת את זה ל-Groq!
+            );
+
             var dbPlugin = new DatabasePlugin(connectionString);
             builder.Plugins.AddFromObject(dbPlugin, "JamLinkDatabase");
 
             kernel = builder.Build();
             chatService = kernel.GetRequiredService<IChatCompletionService>();
 
-            // תיקון: חובה לבצע new ל-ChatHistory לפני שמוסיפים הודעות, אחרת תתקבל שגיאת NullReferenceException
             history = new ChatHistory();
-
             history.AddSystemMessage("You are JamLink AI, a professional music collaboration assistant. " +
                                      "You have access to the musician and producer database. " +
                                      "Use the 'JamLinkDatabase' tools to answer questions about users, instruments, and music segments.");
