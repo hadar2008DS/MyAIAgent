@@ -21,75 +21,47 @@ namespace MyAIAgent
 
         [KernelFunction("get_all_musician_profiles")]
         [Description("שולף פרופילים מלאים של נגנים כולל כלי נגינה ופרטי סגמנטים מוזיקליים")]
-        public List<MusicianProfileDTO> GetAllMusicianProfiles()
+        public string GetAllMusicianProfiles()
         {
-            var profiles = new List<MusicianProfileDTO>();
-
-            using (OleDbConnection conn = new OleDbConnection(_connectionString))
+            try
             {
-                string sql = @"
-                    SELECT p.UserName, m.IsActive, i.InstrumentName, s.Genre, s.Mood, s.BPM
-                    FROM (((Person AS p 
-                    INNER JOIN Musician AS m ON p.Id = m.Id)
-                    INNER JOIN MusicianInstruments AS mi ON m.Id = mi.Id_musician)
-                    INNER JOIN Instruments AS i ON mi.Id_Instrument = i.Id)
-                    LEFT JOIN MusicalSegments AS s ON m.Id = s.Id_musician";
+                var db = new AILogicDB(_connectionString);
+                var profiles = db.GetAllMusicianProfiles();
 
-                OleDbCommand cmd = new OleDbCommand(sql, conn);
-                conn.Open();
+                if (profiles == null || profiles.Count == 0)
+                    return "No musicians found in the database.";
 
-                using (OleDbDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        profiles.Add(new MusicianProfileDTO
-                        {
-                            UserName = reader["UserName"].ToString(),
-                            IsActive = (bool)reader["IsActive"],
-                            MainInstrument = reader["InstrumentName"].ToString(),
-                            Genre = reader["Genre"]?.ToString() ?? "Unknown",
-                            Mood = reader["Mood"]?.ToString() ?? "Unknown",
-                            BPM = reader["BPM"] != DBNull.Value ? Convert.ToInt32(reader["BPM"]) : 0
-                        });
-                    }
-                }
+                // הפיכת רשימת ה-DTOs למחרוזת טקסט אחת ארוכה שה-AI מבין בקלות!
+                return string.Join("\n", profiles.Select(p => p.ToString()));
             }
-            return profiles;
+            catch (Exception ex)
+            {
+                return $"Error retrieving musicians: {ex.Message}";
+            }
         }
 
         [KernelFunction("get_producers_with_apps")]
         [Description("שולף רשימת מפיקים והאפליקציות שהם משתמשים בהן")]
-        public List<ProducerCollabDTO> GetProducers()
+        public string GetProducers()
         {
-            var producers = new List<ProducerCollabDTO>();
-
-            using (OleDbConnection conn = new OleDbConnection(_connectionString))
+            try
             {
-                string sql = @"
-                    SELECT p.UserName, a.Appname, pr.IsActive
-                    FROM ((Person AS p
-                    INNER JOIN Producer AS pr ON p.Id = pr.Id)
-                    INNER JOIN ProducerApps AS pa ON pr.Id = pa.Id_producer)
-                    INNER JOIN Apps AS a ON pa.Id_app = a.Id";
+                var db = new AILogicDB(_connectionString);
+                var producers = db.GetProducersWithApps();
 
-                OleDbCommand cmd = new OleDbCommand(sql, conn);
-                conn.Open();
+                if (producers == null || producers.Count == 0)
+                    return "No producers found in the database.";
 
-                using (OleDbDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        producers.Add(new ProducerCollabDTO
-                        {
-                            ProducerName = reader["UserName"].ToString(),
-                            PrimaryApp = reader["Appname"].ToString(),
-                            IsActive = (bool)reader["IsActive"]
-                        });
-                    }
-                }
+                // המרה ידנית לפורמט טקסט ברור עבור ה-AI עבור ה-DTO שאין לו ToString מובנה
+                var lines = producers.Select(p => $"Producer: {p.ProducerName} | App: {p.PrimaryApp} | Active: {p.IsActive}");
+                return string.Join("\n", lines);
             }
-            return producers;
+            catch (Exception ex)
+            {
+                return $"Error retrieving producers: {ex.Message}";
+            }
         }
     }
 }
+
 
