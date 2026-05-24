@@ -17,6 +17,13 @@ namespace MyAIAgent
         private readonly IChatCompletionService chatService;
         private readonly ChatHistory history;
 
+        public AIEngine(string connectionString) : this(GetAPIkeyFrom_Groq(), connectionString) { }
+
+        private static string GetAPIkeyFrom_Groq()
+        {
+            return "lowkey";//swtich to real connect to website and pull the info
+        }
+
         //Setup
         public AIEngine(string apiKey, string connectionString)
         {
@@ -25,7 +32,7 @@ namespace MyAIAgent
             // החלפת ה-modelId למודל העדכני של Groq שתומך ב-Plugins
             builder.AddOpenAIChatCompletion(
                 modelId: "llama-3.3-70b-versatile", // זה המודל החזק והעדכני ביותר שלהם כרגע
-                apiKey: apiKey,
+                apiKey: apiKey, // take key from Groq website
                 endpoint: new Uri("https://api.groq.com/openai/v1")
             );
 
